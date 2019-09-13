@@ -1,0 +1,25 @@
+sudo: required
+services:
+    - docker
+env:
+    global:
+        - IMAGE_NAME=osind/flake8-odoo
+
+before_script:
+    - docker image pull "$IMAGE_NAME" || true
+
+script:
+    - docker image build --pull --cache-from "${IMAGE_NAME}" --tag "latest" .
+
+after_script:
+    - docker images
+
+before_deploy:
+    - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASSWORD"
+    - docker tag "$IMAGE_NAME" "${IMAGE_NAME}:latest"
+
+deploy:
+    provider: script
+    script: docker push "${IMAGE_NAME}:latest"
+    on:
+        branch: master
